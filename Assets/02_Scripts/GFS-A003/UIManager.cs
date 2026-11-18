@@ -53,9 +53,9 @@ namespace GFS_A003
             stateText.text = timeStateManager.currentState.ToString();
         }
 
-        private void OnTimerUIUpdate(float timer, float maxTimer)
+        private void OnTimerUIUpdate(int timer, float maxTimer)
         {
-            timerText.text = Mathf.CeilToInt(timeStateManager.currentTimer).ToString();
+            timerText.text = timer.ToString();
             timerSlider.value = timer / maxTimer;
         }
     }

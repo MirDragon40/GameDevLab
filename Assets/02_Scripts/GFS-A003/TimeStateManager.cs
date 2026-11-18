@@ -19,11 +19,12 @@ namespace GFS_A003
     public class TimeStateManager : MonoBehaviour
     {
         public State currentState { get; private set; } = State.Idle;
-        public float currentTimer = 30;
+        public float currentTimer { get; private set;} = 30;
+        public int currentSecond { get; private set; } = 30;
         [SerializeField] private float maxTimer = 30;
 
         public event Action<State> OnUpdateCurrentStateEvent;
-        public event Action<float, float> OnUpdateTiemerEvent;
+        public event Action<int, float> OnUpdateTiemerEvent;
 
 
         private void Awake()
@@ -31,6 +32,7 @@ namespace GFS_A003
             // 처음 실행 시 상태
             currentState = State.Idle;
             currentTimer = maxTimer;
+            currentSecond = Mathf.CeilToInt(currentTimer);
         }
 
         private void Update()
@@ -55,15 +57,26 @@ namespace GFS_A003
             if (currentTimer > 0)
             {
                 currentTimer -= Time.deltaTime;
-                OnUpdateTiemerEvent?.Invoke(currentTimer, maxTimer);
             }
             
             if (currentTimer <= 0)
             {
                 currentTimer = 0;
+            }
+
+            int nextSecond = Mathf.CeilToInt(currentTimer);
+
+            // 이전 표시 초와 달라졌을 때만 저장하고 알린다.
+            // 의미 있는 변화가 있을 때만 반응하고 싶을 떄 쓰는 방식
+            if (nextSecond != currentSecond)
+            {
+                currentSecond = nextSecond;
+                OnUpdateTiemerEvent?.Invoke(currentSecond, maxTimer);
+            }
+
+            if (currentTimer == 0)
+            {
                 ChangeState(State.Ended);
-                OnUpdateTiemerEvent?.Invoke(currentTimer, maxTimer);
-                return;
             }
 
             Debug.Log($"현재 남은 시간: {currentTimer} / 현재 상태: {currentState}");
@@ -119,6 +132,11 @@ namespace GFS_A003
         {
             // 상태 변경되는 메서드 
             // 상태 변경 시 이벤트 발생 
+            if(changeState == currentState)
+            {
+                return;
+            }
+
             currentState = changeState;
             OnUpdateCurrentStateEvent?.Invoke(currentState);
             Debug.Log($"상태가 변경되었습니다. 현재 상태: {currentState}");
